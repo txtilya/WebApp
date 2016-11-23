@@ -1,0 +1,5 @@
+rootProject.name = 'WebApp'
+
+include 'core',
+        'jdbc',
+        'servlets'
