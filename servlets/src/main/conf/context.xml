@@ -52,24 +52,33 @@
 
     <!-- url: The JDBC connection url for connecting to your MySQL database.
          -->
+    <!--<Resource name="jdbc/TestDB"-->
+              <!--auth="Container"-->
+              <!--type="javax.sql.DataSource"-->
+              <!--maxTotal="100"-->
+              <!--maxIdle="30"-->
+              <!--maxWaitMillis="10000"-->
+              <!--username=""-->
+              <!--password=""-->
+              <!--driverClassName="org.h2.Driver"-->
+              <!--url="jdbc:h2:mem:test;DB_CLOSE_DELAY=-1"/>-->
+
     <Resource name="jdbc/TestDB"
               auth="Container"
               type="javax.sql.DataSource"
-              maxTotal="100"
               maxIdle="30"
-              maxWaitMillis="10000"
-              username=""
-              password=""
-              driverClassName="org.h2.Driver"
-              url="jdbc:h2:mem:test;DB_CLOSE_DELAY=-1"/>
+              username="user"
+              password="123456"
+              driverClassName="com.mysql.jdbc.Driver"
+              url="jdbc:mysql://192.168.193.129:3306/webapp?autoReconnect=true&amp;useSSL=false"/>
 
     <Realm className="org.apache.catalina.realm.DataSourceRealm"
            localDataSource="true"
            dataSourceName="jdbc/TestDB"
-           userTable="Person"
+           userTable="user"
            userNameCol="email"
            userCredCol="password"
-           userRoleTable="Roles"
+           userRoleTable="user"
            roleNameCol="role"/>
 
 </Context>

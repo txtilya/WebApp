@@ -1,7 +1,8 @@
 package listeners;
 
-import com.hegel.core.functions.ExceptionalConsumer;
-import com.hegel.core.functions.ExceptionalSupplier;
+import com.hegel.core.StringEncryptUtil;
+import common.ConnectionPool;
+import dao.mysql.MysqlUserDao;
 import lombok.SneakyThrows;
 import lombok.extern.java.Log;
 
@@ -11,18 +12,18 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 import javax.sql.DataSource;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.Statement;
-import java.util.Arrays;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
+import static com.hegel.core.functions.ExceptionalSupplier.toUncheckedSupplier;
 
 @Log
 @WebListener
 public class Initer implements ServletContextListener {
+
+    public static final String USER_DAO = "userDao";
 
     @Resource(name = "jdbc/TestDB")
     private DataSource dataSource;
@@ -31,29 +32,34 @@ public class Initer implements ServletContextListener {
     @SneakyThrows
     public void contextInitialized(ServletContextEvent sce) {
         ServletContext context = sce.getServletContext();
-        String pathToDbConfig = context.getRealPath("/WEB-INF/classes/h2.sql");
 
-        Supplier<Connection> connectionPool;
-        connectionPool = ExceptionalSupplier.toUncheckedSupplier(dataSource::getConnection);
-        initDb(connectionPool, pathToDbConfig);
+        ConnectionPool connectionPool = ConnectionPool.create(toUncheckedSupplier(dataSource::getConnection));
+
+//        context.getRealPath("/WEB-INF/classes/h2.sql")
+//        encryptPasswords(connectionPool);
+
+        context.setAttribute(USER_DAO, new MysqlUserDao(connectionPool));
 
     }
 
     @SneakyThrows
-    private void initDb(Supplier<Connection> connectionPool, String pathToInitScript) {
+    private void encryptPasswords(Supplier<Connection> connectionSupplier) {
 
-        try (Connection connection = connectionPool.get();
-             Statement statement = connection.createStatement()) {
+        try (Connection connection = connectionSupplier.get();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery("SELECT id, password FROM Person");
+             Statement statement1 = connection.createStatement()) {
 
-            Arrays.stream(
-                    Files.lines(Paths.get(pathToInitScript))
-                            .collect(Collectors.joining())
-                            .split(";"))
-                    .forEachOrdered(ExceptionalConsumer.toUncheckedConsumer(statement::addBatch));
+            while (resultSet.next()) {
+                String id = resultSet.getString("id");
+                String password = resultSet.getString("password");
+                statement1.addBatch(
+                        "UPDATE Person SET password = '" +
+                                StringEncryptUtil.encrypt(password) +
+                                "' WHERE id = " + id);
+            }
 
-            statement.executeBatch();
+            statement1.executeBatch();
         }
     }
-
-
 }

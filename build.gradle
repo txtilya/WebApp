@@ -15,5 +15,9 @@ subprojects {
         compile 'ch.qos.logback:logback-classic:+'
         compileOnly 'org.projectlombok:lombok:+'
         testCompile 'junit:junit:+'
+
+        // https://mvnrepository.com/artifact/mysql/mysql-connector-java
+        compile group: 'mysql', name: 'mysql-connector-java', version: '5.1.6'
+
     }
 }
