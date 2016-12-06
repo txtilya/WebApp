@@ -1,0 +1,10 @@
+{
+  "extends": "tslint:latest",
+  "rules": {
+    "curly": false,
+    "one-line": false,
+    "no-trailing-whitespace": false,
+    "comment-format": false,
+    "interface-name": false
+  }
+}
