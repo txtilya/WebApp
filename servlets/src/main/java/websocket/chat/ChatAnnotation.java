@@ -95,7 +95,7 @@ public class ChatAnnotation {
         connections.remove(this);
         String message = String.format("* %s %s",
                 nickname, "has disconnected.");
-        broadcast(message);
+        log.info(message);
     }
 
 
