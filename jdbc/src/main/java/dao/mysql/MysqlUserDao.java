@@ -36,6 +36,19 @@ public class MysqlUserDao implements UserDao {
 
     @SneakyThrows
     @Override
+    public Optional<User> getByEmail(String email) {
+        val sql = "SELECT id, email, login, password, role FROM `user` WHERE email = " + "'" + email + "'";
+        try (Connection connection = connectionSupplier.get();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return Optional.ofNullable(resultSet.next() ?
+                        User.getFrom(resultSet) : null);
+            }
+        }
+    }
+
+    @SneakyThrows
+    @Override
     public Optional<User> getById(long id) {
         val sql = "SELECT id, email, login, password, role FROM `user` WHERE id = " + id;
         try (Connection connection = connectionSupplier.get();

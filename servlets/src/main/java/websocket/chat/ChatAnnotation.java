@@ -16,7 +16,10 @@
  */
 package websocket.chat;
 
+import dao.UserDao;
+import dao.UserInConferenceDao;
 import lombok.extern.java.Log;
+import model.User;
 import util.HTMLFilter;
 
 import javax.servlet.ServletContext;
@@ -24,12 +27,16 @@ import javax.servlet.http.HttpSession;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static listeners.Initer.USER_DAO;
+import static listeners.Initer.USER_IN_CONFERENCE_DAO;
+
 @Log
-@ServerEndpoint(value = "/websocket/chat/{room}", configurator=ServletAwareConfig.class)
+@ServerEndpoint(value = "/websocket/chat/{room}", configurator = ServletAwareConfig.class)
 public class ChatAnnotation {
     private EndpointConfig config;
 
@@ -54,14 +61,31 @@ public class ChatAnnotation {
         HttpSession httpSession = (HttpSession) config.getUserProperties().get("httpSession");
         ServletContext servletContext = httpSession.getServletContext();
 
+        UserInConferenceDao userInConferenceDao =
+                (UserInConferenceDao) servletContext.getAttribute(USER_IN_CONFERENCE_DAO);
+        UserDao userDao =
+                (UserDao) servletContext.getAttribute(USER_DAO);
+
+        String username = (String) httpSession.getAttribute("username");
+        Optional<User> user = userDao.getByEmail(username);
+        int userId = user.get().getId();
+        log.info(String.valueOf(userId));
+
+        int room = Integer.parseInt((String) httpSession.getAttribute("room"));
+        log.info(String.valueOf(room));
+
         connections.add(this);
         String message = String.format("* %s %s", nickname, "has joined.");
         broadcast(message);
 
-        log.info((String) httpSession.getAttribute("username"));
-        broadcast((String) httpSession.getAttribute("username"));
+        if (userInConferenceDao.isPresent(userId, room)) {
+            log.info("User in conference");
+            broadcast("User in conference");
+        } else {
+            log.info("User not in conference");
+            broadcast("User not in conference");
+        }
     }
-
 
     @OnClose
     public void end() {
@@ -79,8 +103,6 @@ public class ChatAnnotation {
                 nickname, HTMLFilter.filter(message.toString()));
         broadcast(filteredMessage);
     }
-
-
 
 
     @OnError

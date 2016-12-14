@@ -5,9 +5,10 @@ import model.User;
 import java.util.Collection;
 import java.util.Optional;
 
-@FunctionalInterface
+
 public interface UserDao {
     Collection<User> getAll();
+    public Optional<User> getByEmail(String email);
 
     default Optional<User> getById(long id) {
         return getAll().stream()
