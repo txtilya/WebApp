@@ -14,8 +14,8 @@ public class ServletAwareConfig extends ServerEndpointConfig.Configurator {
     public void modifyHandshake(ServerEndpointConfig config, HandshakeRequest request, HandshakeResponse response) {
         HttpSession httpSession = (HttpSession) request.getHttpSession();
         httpSession.setAttribute("username", request.getUserPrincipal().getName());
-        httpSession.setAttribute("room", String.valueOf(request.getParameterMap()
-                .get("room")).replaceAll("\\D+", ""));
+//        httpSession.setAttribute("room", String.valueOf(request.getParameterMap()
+//                .get("room")).replaceAll("\\D+", ""));
         config.getUserProperties().put("httpSession", httpSession);
     }
 }

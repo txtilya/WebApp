@@ -25,12 +25,12 @@ import util.HTMLFilter;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpSession;
 import javax.websocket.*;
+import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static listeners.Initer.USER_DAO;
 import static listeners.Initer.USER_IN_CONFERENCE_DAO;
@@ -38,26 +38,26 @@ import static listeners.Initer.USER_IN_CONFERENCE_DAO;
 @Log
 @ServerEndpoint(value = "/websocket/chat/{room}", configurator = ServletAwareConfig.class)
 public class ChatAnnotation {
-    private EndpointConfig config;
+//    private EndpointConfig config;
+    private Session session;
+    //    private static final String GUEST_PREFIX = "Guest";
+//    private static final AtomicInteger connectionIds = new AtomicInteger(0);
 
-
-    private static final String GUEST_PREFIX = "Guest";
-    private static final AtomicInteger connectionIds = new AtomicInteger(0);
     private static final Set<ChatAnnotation> connections =
             new CopyOnWriteArraySet<>();
 
-    private final String nickname;
-    private Session session;
+    private String nickname;
 
-    public ChatAnnotation() {
-        nickname = GUEST_PREFIX + connectionIds.getAndIncrement();
-    }
+//    public ChatAnnotation() {
+//        nickname = GUEST_PREFIX + connectionIds.getAndIncrement();
+//    }
 
 
     @OnOpen
-    public void start(Session session, EndpointConfig config) {
-        this.config = config;
+    public void start(Session session, EndpointConfig config, @PathParam("room") final String room) {
+//        this.config = config;
         this.session = session;
+        session.getUserProperties().put("room", room);
         HttpSession httpSession = (HttpSession) config.getUserProperties().get("httpSession");
         ServletContext servletContext = httpSession.getServletContext();
 
@@ -68,22 +68,25 @@ public class ChatAnnotation {
 
         String username = (String) httpSession.getAttribute("username");
         Optional<User> user = userDao.getByEmail(username);
+
+        this.nickname = user.get().getLogin();
         int userId = user.get().getId();
-        log.info(String.valueOf(userId));
+        int intRoom = Integer.parseInt(room);
+//        int room = Integer.parseInt((String) httpSession.getAttribute("room"));
 
-        int room = Integer.parseInt((String) httpSession.getAttribute("room"));
-        log.info(String.valueOf(room));
+//        String message = String.format("* %s %s", nickname, "has joined.");
+//        broadcast(message);
 
-        connections.add(this);
-        String message = String.format("* %s %s", nickname, "has joined.");
-        broadcast(message);
-
-        if (userInConferenceDao.isPresent(userId, room)) {
-            log.info("User in conference");
-            broadcast("User in conference");
+        if (userInConferenceDao.isPresent(userId, intRoom)) {
+            connections.add(this);
+            log.info("User " + nickname + " in conference");
         } else {
-            log.info("User not in conference");
-            broadcast("User not in conference");
+            log.info("User " + nickname + " not in conference");
+            try {
+                session.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -98,7 +101,6 @@ public class ChatAnnotation {
 
     @OnMessage
     public void incoming(String message) {
-        // Never trust the client
         String filteredMessage = String.format("%s: %s",
                 nickname, HTMLFilter.filter(message.toString()));
         broadcast(filteredMessage);
