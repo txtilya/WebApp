@@ -129,7 +129,7 @@ public class ChatAnnotation {
                 }
                 String message = String.format("* %s %s",
                         client.nickname, "has been disconnected.");
-                broadcast(message);
+                log.info(message);
             }
         }
     }
