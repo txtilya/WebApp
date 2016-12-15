@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+    <title>Apache Tomcat WebSocket Examples: Chat</title>
+    <style type="text/css">
+        h1, form {
+            /*text-align: center;*/
+        }
+
+        input#message {
+            margin: 0 auto;
+            width: 410px
+        }
+
+        #output-container {
+            width: 465px;
+        }
+
+        #output {
+            border: 1px solid #CCCCCC;
+            border-right-color: #999999;
+            border-bottom-color: #999999;
+            height: 300px;
+            overflow-y: scroll;
+            padding: 5px;
+            width: 100%;
+        }
+
+        #output p {
+            padding: 0;
+            margin: 0;
+        }
+    </style>
+
+    <script src="_scripts/SocketChannel.js"></script>
+    <script>
+        addEventListener("DOMContentLoaded", () => new SocketChannel());
+    </script>
+
+</head>
+<body>
+<h1>Welcome to our chat</h1>
+<div>
+    <div>
+        <div id="output-container">
+            <div id="output"></div>
+        </div>
+    </div>
+
+    <form action="">
+        <input id="message" name="message" placeholder="type and press enter to chat" autocomplete="off" autofocus>
+        <input type="submit" value="Send">
+    </form>
+</div>
+
+
+</body>
+</html>
