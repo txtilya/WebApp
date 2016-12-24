@@ -28,7 +28,7 @@ class SocketChannel {
         this.webSocket = Object.assign(new WebSocket(this.initParam), {
             onerror: (evt: MessageEvent) => this.writeToScreen(`ERROR: ${evt.data}`),
             onmessage: (evt: MessageEvent) => this.writeToScreen(`Message Received: ${evt.data}`),
-            onopen: () => this.writeToScreen(`Connected to Endpoint!`),
+            onopen: () => this.writeToScreen(`Hello!`),
         });
 
         // noinspection SpellCheckingInspection

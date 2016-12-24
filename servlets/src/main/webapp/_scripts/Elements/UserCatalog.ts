@@ -11,9 +11,7 @@ class UsersCatalog {
     public add(user: User) {
         //noinspection JSValidateTypes
         const instanceLi: HTMLLIElement = document.createElement("li");
-
         instanceLi.appendChild(document.createTextNode(user.login));
-
         this.targetElement.appendChild(instanceLi);
     }
 

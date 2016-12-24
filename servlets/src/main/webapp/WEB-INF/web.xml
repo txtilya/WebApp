@@ -40,6 +40,48 @@
         </form-login-config>
     </login-config>
 
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>Registration Page</web-resource-name>
+            <url-pattern>/registration.html</url-pattern>
+        </web-resource-collection>
+        <!-- OMIT auth-constraint -->
+    </security-constraint>
+
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>Registraton Servlet</web-resource-name>
+            <url-pattern>/registration</url-pattern>
+        </web-resource-collection>
+        <!-- OMIT auth-constraint -->
+    </security-constraint>
+
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>Good</web-resource-name>
+            <url-pattern>/regpass.html</url-pattern>
+        </web-resource-collection>
+        <!-- OMIT auth-constraint -->
+    </security-constraint>
+
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>Bad</web-resource-name>
+            <url-pattern>/regfail.html</url-pattern>
+        </web-resource-collection>
+        <!-- OMIT auth-constraint -->
+    </security-constraint>
+
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>Favicon</web-resource-name>
+            <url-pattern>/favicon.ico</url-pattern>
+        </web-resource-collection>
+        <!-- OMIT auth-constraint -->
+    </security-constraint>
+
+
+
 
 
     <servlet>

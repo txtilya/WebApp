@@ -3,6 +3,7 @@ package dao.mysql;
 import dao.UserDao;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.java.Log;
 import lombok.val;
 import model.User;
 
@@ -15,6 +16,7 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+@Log
 @AllArgsConstructor
 public class MysqlUserDao implements UserDao {
 
@@ -57,6 +59,31 @@ public class MysqlUserDao implements UserDao {
                 return Optional.ofNullable(resultSet.next() ?
                         User.getFrom(resultSet) : null);
             }
+        }
+    }
+
+    @SneakyThrows
+    @Override
+    public boolean isUserExist(String login, String email) {
+        val sql = "SELECT id, email, login, password, role FROM `user` WHERE login = " +
+                "'" + login + "'" +
+                " OR email = " + "'" + email + "'";
+        try (Connection connection = connectionSupplier.get();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return resultSet.next();
+            }
+        }
+    }
+
+    @SneakyThrows
+    @Override
+    public void addUser(String login, String email, String pass) {
+        val sql = "INSERT INTO `webapp`.`user` (`id`, `email`, `login`, `password`, `role`) VALUES (DEFAULT, '" + email +
+                "', '" + login + "', '" + pass + "', 'user')";
+        try (Connection connection = connectionSupplier.get();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.executeUpdate();
         }
     }
 

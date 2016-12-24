@@ -2,28 +2,32 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Welcome!</title>
     <script src="_scripts/BaseServer.js"></script>
     <script src="_scripts/Server.js"></script>
-    <script src="_scripts/InstanceCatalog.js"></script>
+    <script src="_scripts/Elements/UserCatalog.js"></script>
     <script>
         addEventListener("DOMContentLoaded", () =>
             new Server()
-                .getInstances()
-                .then(instancies => new InstanceCatalog().addAll(instancies)));
+                .getUsers()
+                .then(users => new UsersCatalog().addAll(users)));
     </script>
 </head>
 <body>
 
 <h1>Welcome!</h1>
 
+<p>
+    <a href="/logout"> Logout</a>
+</p>
+
 <ul>
     <li><a href="/catalog/">Каталог</a></li>
-    <li><a href="/web-sockets.html">Пример реализации WebSocket`ов</a></li>
+    <li><a href="chat/chat.html">Chat</a></li>
 </ul>
 
 <h2>В наличии:</h2>
-<ol id="instances"></ol>
+<ol id="users"></ol>
 
 </body>
 </html>

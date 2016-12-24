@@ -33,6 +33,7 @@ public class Initer implements ServletContextListener {
     @Override
     @SneakyThrows
     public void contextInitialized(ServletContextEvent sce) {
+
         ServletContext context = sce.getServletContext();
 
         ConnectionPool connectionPool = ConnectionPool.create(toUncheckedSupplier(dataSource::getConnection));
