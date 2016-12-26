@@ -1,33 +1,73 @@
-<!DOCTYPE html>
-<html lang="en">
+<?xml version="1.0" encoding="UTF-8"?>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Welcome!</title>
-    <script src="_scripts/BaseServer.js"></script>
-    <script src="_scripts/Server.js"></script>
-    <script src="_scripts/Elements/UserCatalog.js"></script>
+    <title>WebApp</title>
+    <style type="text/css">
+        h1, form {
+            /*text-align: center;*/
+        }
+
+        input#message {
+            margin: 0 auto;
+            width: 410px
+        }
+
+
+        #content-container {
+            width: 450px;
+        }
+
+        #content {
+            border: 1px solid #CCCCCC;
+            border-right-color: #999999;
+            border-bottom-color: #999999;
+            height: 400px;
+            overflow-y: scroll;
+            padding: 5px;
+            width: 100%;
+        }
+
+
+        #content p {
+            padding: 0;
+            margin: 0;
+        }
+
+        a:visited{
+            color:blue;
+        }
+
+    </style>
+
+    <script src="_scripts/NewSocketChannel.js"></script>
     <script>
-        addEventListener("DOMContentLoaded", () =>
-            new Server()
-                .getUsers()
-                .then(users => new UsersCatalog().addAll(users)));
+        addEventListener("DOMContentLoaded", () => new NewSocketChannel());
     </script>
+
 </head>
 <body>
+<h1>Welcome to WebApp!</h1>
+<div>
 
-<h1>Welcome!</h1>
 
-<p>
-    <a href="/logout"> Logout</a>
-</p>
+    <ul>
+        <li><a id="messages" href>Messages</a></li>
+        <li><a id="friends" href>Friends</a></li>
+    </ul>
 
-<ul>
-    <li><a href="/catalog/">Каталог</a></li>
-    <li><a href="chat/chat.html">Chat</a></li>
-</ul>
+    <div>
+        <div id="content-container">
+            <div id="content"></div>
+        </div>
+    </div>
 
-<h2>В наличии:</h2>
-<ol id="users"></ol>
+    <!--<form action="">-->
+    <!--<input id="message" name="message" placeholder="type and press enter to chat" autocomplete="off" autofocus>-->
+    <!--<input type="submit" value="Send">-->
+    <!--</form>-->
+</div>
+
 
 </body>
 </html>

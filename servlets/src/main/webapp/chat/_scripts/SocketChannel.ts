@@ -2,16 +2,19 @@
 
 class SocketChannel {
 
-    private static readonly WS_URI = `ws://` + window.location.host + `/websocket/chat/1`;
-    private static readonly WSS_URI = `wss://` + window.location.host + `/websocket/chat/1`;
+    private static readonly AAWS_URI = `ws://` + window.location.host + `/websocket/chat/1`;
+    private static readonly AAWSS_URI = `wss://` + window.location.host + `/websocket/chat/1`;
 
     private input: HTMLInputElement;
     private output: HTMLDivElement;
     private webSocket: WebSocket;
     private initParam: string;
 
+
     //noinspection JSUnusedGlobalSymbols
-    constructor(outputElementId = `output`, inputElementId = `message`) {
+    constructor() {
+        var outputElementId = `output`;
+        var inputElementId = `message`;
 
         this.output = document.getElementById(outputElementId) as HTMLDivElement;
         this.input = document.getElementById(inputElementId) as HTMLInputElement;
@@ -22,7 +25,7 @@ class SocketChannel {
             evt.preventDefault();
         }, true);
 
-        this.initParam = window.location.protocol == `http:` ? SocketChannel.WS_URI : SocketChannel.WSS_URI;
+        this.initParam = window.location.protocol == `http:` ? SocketChannel.AAWS_URI : SocketChannel.AAWSS_URI;
 
         // noinspection JSUnusedGlobalSymbols,SpellCheckingInspection
         this.webSocket = Object.assign(new WebSocket(this.initParam), {
