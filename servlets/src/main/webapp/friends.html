@@ -5,14 +5,26 @@
     <title>WebApp</title>
     <style type="text/css">
 
-        #col1 {
-            vertical-align: top;
-            width: 25%;
+        table {
+            width: 100%
         }
 
-        h1, form {
-            /*text-align: center;*/
+        #col1 {
+            vertical-align: top;
+            width: 15%;
         }
+
+        #col2 {
+            text-align: left;
+            vertical-align: top;
+            width: 70%;
+        }
+
+        #col3 {
+            vertical-align: top;
+            width: 15%;
+        }
+
 
         input#message {
             margin: 0 auto;
@@ -20,15 +32,15 @@
         }
 
         #content-container {
-            width: 450px;
+            width: 95%
         }
 
         #content {
             border: 1px solid #CCCCCC;
             border-right-color: #999999;
             border-bottom-color: #999999;
-            height: 400px;
             overflow-y: scroll;
+            height: 350px;
             padding: 5px;
             width: 100%;
         }
@@ -44,16 +56,14 @@
 
     </style>
 
-    <!--<script src="_scripts/NewSocketChannel.js"></script>-->
-    <script src="_scripts/Index.js"></script>
+    <script src="_scripts/Friends.js"></script>
     <script>
-//        addEventListener("DOMContentLoaded", () => new NewSocketChannel());
-        addEventListener("DOMContentLoaded", () => new Index());
+        addEventListener("DOMContentLoaded", () => new Friends());
     </script>
 
 </head>
 <body>
-<h1>Index</h1>
+<h1>Friends</h1>
 <div>
     <table>
         <tr>
@@ -72,9 +82,9 @@
             </td>
             <td id="col3">
                 <div>
-                    <div id="content2-container">
-                    <div id="content2"></div>
-                    </div>
+                    <a id="c3friends" href>My friends</a><br>
+                    <a id="c3requests" href>Requests</a><br>
+                    <a id="c3search" href>Search</a>
                 </div>
             </td>
         </tr>

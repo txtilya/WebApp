@@ -14,21 +14,25 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package websocket.chat;
+package websocket;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import dao.UserDao;
 import dao.UserInConferenceDao;
+import lombok.Getter;
+import lombok.SneakyThrows;
 import lombok.extern.java.Log;
 import model.User;
+import model.messages.Message;
 import util.HTMLFilter;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpSession;
 import javax.websocket.*;
-import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
-import java.util.Optional;
+import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -36,85 +40,88 @@ import static listeners.Initer.USER_DAO;
 import static listeners.Initer.USER_IN_CONFERENCE_DAO;
 
 @Log
-@ServerEndpoint(value = "/websocket/chat/{room}", configurator = ServletAwareConfig.class)
-public class ChatAnnotation {
-//    private EndpointConfig config;
+@ServerEndpoint(value = "/websocket/{path}", configurator = ServletAwareConfig.class)
+public class Channel {
     private Session session;
-    //    private static final String GUEST_PREFIX = "Guest";
-//    private static final AtomicInteger connectionIds = new AtomicInteger(0);
 
-    private static final Set<ChatAnnotation> connections =
+    private static final Set<Channel> connections =
             new CopyOnWriteArraySet<>();
 
-    private String nickname;
+    private UserInConferenceDao userInConferenceDao;
+    private UserDao userDao;
 
-//    public ChatAnnotation() {
-//        nickname = GUEST_PREFIX + connectionIds.getAndIncrement();
-//    }
-
+    @Getter
+    private User connectionOwner;
 
     @OnOpen
-    public void start(Session session, EndpointConfig config, @PathParam("room") final String room) {
-//        this.config = config;
+    public void start(Session session, EndpointConfig config) {
         this.session = session;
-        session.getUserProperties().put("room", room);
+//        session.getUserProperties().put("clientId", clientId);
         HttpSession httpSession = (HttpSession) config.getUserProperties().get("httpSession");
         ServletContext servletContext = httpSession.getServletContext();
 
-        UserInConferenceDao userInConferenceDao =
-                (UserInConferenceDao) servletContext.getAttribute(USER_IN_CONFERENCE_DAO);
-        UserDao userDao =
-                (UserDao) servletContext.getAttribute(USER_DAO);
+        userInConferenceDao = (UserInConferenceDao) servletContext.getAttribute(USER_IN_CONFERENCE_DAO);
+        userDao = (UserDao) servletContext.getAttribute(USER_DAO);
 
         String username = (String) httpSession.getAttribute("username");
-        Optional<User> user = userDao.getByEmail(username);
+        connectionOwner = userDao.getByEmail(username).get();
+        connections.add(this);
 
-        this.nickname = user.get().getLogin();
-        int userId = user.get().getId();
-        int intRoom = Integer.parseInt(room);
-//        int room = Integer.parseInt((String) httpSession.getAttribute("room"));
-
-//        String message = String.format("* %s %s", nickname, "has joined.");
-//        broadcast(message);
-
-        if (userInConferenceDao.isPresent(userId, intRoom)) {
-            connections.add(this);
-            log.info("User " + nickname + " in conference");
-        } else {
-            log.info("User " + nickname + " not in conference");
-            try {
-                session.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
     }
 
     @OnClose
     public void end() {
         connections.remove(this);
         String message = String.format("* %s %s",
-                nickname, "has disconnected.");
+                connectionOwner.getLogin(), "has disconnected.");
         log.info(message);
     }
 
+    @OnError
+    public void onError(Throwable t) throws Throwable {
+        log.info("Error: " + t.toString());
+    }
 
     @OnMessage
     public void incoming(String message) {
+        messageDispatcher(message);
+    }
+
+
+    @SneakyThrows
+    private void messageDispatcher(String message) {
+
+        ObjectMapper mapper = new ObjectMapper();
+        Message m = mapper.readValue(message, Message.class);
+        if (m.getType().equals("INFO")) message = "WORKS!!!";
+        if (m.getType().equals("ChangeContent")) changeContent();
+
         String filteredMessage = String.format("%s: %s",
-                nickname, HTMLFilter.filter(message.toString()));
-        broadcast(filteredMessage);
+                connectionOwner.getLogin(), HTMLFilter.filter(message));
+        log.info(message);
+//        broadcast(filteredMessage);
+//        sendToThis(filteredMessage);
     }
 
-
-    @OnError
-    public void onError(Throwable t) throws Throwable {
-        log.info("Chat Error: " + t.toString());
+    @SneakyThrows
+    private void changeContent() {
+        Collection<User> users = userDao.getAll();
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+        String arrayToJson = objectMapper.writeValueAsString(users);
+        sendToThis(arrayToJson);
+        log.info(arrayToJson);
     }
 
+    @SneakyThrows
+    private void sendToThis(String msg) {
+        synchronized (this) {
+            this.session.getBasicRemote().sendText(msg);
+        }
+    }
 
-    private static void broadcast(String msg) {
-        for (ChatAnnotation client : connections) {
+    private void broadcast(String msg) {
+        for (Channel client : connections) {
             try {
                 synchronized (client) {
                     client.session.getBasicRemote().sendText(msg);
@@ -128,7 +135,7 @@ public class ChatAnnotation {
                     // Ignore
                 }
                 String message = String.format("* %s %s",
-                        client.nickname, "has been disconnected.");
+                        client.connectionOwner.getLogin(), "has been disconnected.");
                 log.info(message);
             }
         }

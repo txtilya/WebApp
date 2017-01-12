@@ -20,8 +20,7 @@ dependencies {
     compile 'org.glassfish.jersey.containers:jersey-container-servlet:+'
     compile 'org.glassfish.jersey.media:jersey-media-moxy:+'
 
-    // Jackson
-    compile 'com.fasterxml.jackson.core:jackson-databind:+'
+
 
     // WebSockets
     compile 'org.apache.tomcat:tomcat-websocket-api:+'

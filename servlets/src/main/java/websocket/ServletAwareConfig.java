@@ -1,4 +1,4 @@
-package websocket.chat;
+package websocket;
 
 import lombok.extern.java.Log;
 
