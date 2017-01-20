@@ -94,7 +94,7 @@ public class Channel {
         ObjectMapper mapper = new ObjectMapper();
         Message m = mapper.readValue(message, Message.class);
         if (m.getType().equals("INFO")) message = "WORKS!!!";
-        if (m.getType().equals("ChangeContent")) changeContent();
+        if (m.getType().equals("ChangeContent")) changeContent(m.getContent());
 
         String filteredMessage = String.format("%s: %s",
                 connectionOwner.getLogin(), HTMLFilter.filter(message));
@@ -104,13 +104,17 @@ public class Channel {
     }
 
     @SneakyThrows
-    private void changeContent() {
-        Collection<User> users = userDao.getAll();
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-        String arrayToJson = objectMapper.writeValueAsString(users);
-        sendToThis(arrayToJson);
-        log.info(arrayToJson);
+    private void changeContent(String content) {
+//        Collection<User> users = userDao.getAll();
+        if (content.equals("friends")) {
+            Collection<User> users = userDao.getFriends(connectionOwner);
+            ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+            String arrayToJson = objectMapper.writeValueAsString(users);
+            sendToThis(arrayToJson);
+            log.info(arrayToJson);
+        }
+
     }
 
     @SneakyThrows

@@ -38,6 +38,23 @@ public class MysqlUserDao implements UserDao {
 
     @SneakyThrows
     @Override
+    public Collection<User> getFriends(User user) {
+        int userId = user.getId();
+        val users = new HashSet<User>();
+        val sql = "SELECT id, email, login, password, role FROM `user` WHERE id IN (SELECT responder FROM `friends` WHERE requester = '" +
+                userId + "' AND confirmation = '1' UNION SELECT requester FROM `friends` WHERE  responder = '" +
+                userId + "' AND confirmation = '1')";
+        try (Connection connection = connectionSupplier.get();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(sql)) {
+            while (resultSet.next())
+                users.add(User.getFrom(resultSet));
+        }
+        return users;
+    }
+
+    @SneakyThrows
+    @Override
     public Optional<User> getByEmail(String email) {
         val sql = "SELECT id, email, login, password, role FROM `user` WHERE email = " + "'" + email + "'";
         try (Connection connection = connectionSupplier.get();

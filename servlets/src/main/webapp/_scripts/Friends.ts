@@ -83,9 +83,10 @@ class Friends {
 
     private changeContentFriends(m: any) {
         this.contentDiv.innerHTML = ``;
-        for (var i = 0; i < m.length; i++){
-            var counter = m[i];
-            this.writeToScreen(JSON.stringify(counter))}
+        for (var i = 0; i < m.length; i++) {
+            var current = m[i];
+            this.writeUser(current)
+        }
     }
 
     private doSend(message: string) {
@@ -128,6 +129,20 @@ class Friends {
         const paragraph = document.createElement(`p`);
         paragraph.style.wordWrap = `break-word`;
         paragraph.appendChild(document.createTextNode(message));
+        this.contentDiv.appendChild(paragraph);
+        while (this.contentDiv.childNodes.length > 25) {
+            this.contentDiv.removeChild(this.contentDiv.firstChild);
+        }
+        this.contentDiv.scrollTop = this.contentDiv.scrollHeight;
+    }
+
+    public writeUser(u: User) {
+        const paragraph = document.createElement(`p`);
+        paragraph.style.wordWrap = `break-word`;
+        paragraph.appendChild(document.createTextNode(`id:` + u.id + ` login:` + u.login));
+        paragraph.addEventListener(`click`, (evt: Event) => {
+            window.location.href = `/ololo`
+        }, true);
         this.contentDiv.appendChild(paragraph);
         while (this.contentDiv.childNodes.length > 25) {
             this.contentDiv.removeChild(this.contentDiv.firstChild);
