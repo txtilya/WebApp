@@ -9,6 +9,7 @@ import java.util.Optional;
 public interface UserDao {
     Collection<User> getAll();
     Collection<User> getFriends(User user);
+    boolean isUsersFriends(int id, int id1);
     public Optional<User> getByEmail(String email);
     public boolean isUserExist(String login, String email);
 
@@ -19,4 +20,5 @@ public interface UserDao {
                 .filter(user -> user.getId() == id)
                 .findAny();
     }
+
 }

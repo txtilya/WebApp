@@ -25,6 +25,7 @@ import lombok.SneakyThrows;
 import lombok.extern.java.Log;
 import model.User;
 import model.messages.Message;
+import model.messages.MessageWithUser;
 import util.HTMLFilter;
 
 import javax.servlet.ServletContext;
@@ -95,12 +96,34 @@ public class Channel {
         Message m = mapper.readValue(message, Message.class);
         if (m.getType().equals("INFO")) message = "WORKS!!!";
         if (m.getType().equals("ChangeContent")) changeContent(m.getContent());
+        if (m.getType().equals("LoadUserPage")) loadUserPage(m.getContent());
 
         String filteredMessage = String.format("%s: %s",
                 connectionOwner.getLogin(), HTMLFilter.filter(message));
         log.info(message);
 //        broadcast(filteredMessage);
 //        sendToThis(filteredMessage);
+    }
+
+    @SneakyThrows
+    private void loadUserPage(String content) {
+//        Collection<User> users = userDao.getAll();
+        User user = userDao.getById(Long.parseLong(content)).get();
+        int requestedUserId = user.getId();
+        int ownersId = connectionOwner.getId();
+        String type;
+        if (requestedUserId == ownersId) type = "LoadMyPage";
+        else {
+            if (userDao.isUsersFriends(requestedUserId, ownersId)) type = "LoadUserPageFriends";
+            else type = "LoadUserPageNotFriends";
+        }
+
+        MessageWithUser outMessage = new MessageWithUser(type, user);
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+        String arrayToJson = objectMapper.writeValueAsString(outMessage);
+        sendToThis(arrayToJson);
+        log.info(arrayToJson);
     }
 
     @SneakyThrows

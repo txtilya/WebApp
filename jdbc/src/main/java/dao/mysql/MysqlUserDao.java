@@ -55,6 +55,22 @@ public class MysqlUserDao implements UserDao {
 
     @SneakyThrows
     @Override
+    public boolean isUsersFriends(int id, int id1) {
+        val sql = "SELECT * FROM `friends` WHERE (requester = " + id +
+                " AND responder = " + id1 +
+                " OR requester = " + id1 +
+                " AND responder = " + id +
+                ") AND confirmation = 1";
+        try (Connection connection = connectionSupplier.get();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return resultSet.next();
+            }
+        }
+    }
+
+    @SneakyThrows
+    @Override
     public Optional<User> getByEmail(String email) {
         val sql = "SELECT id, email, login, password, role FROM `user` WHERE email = " + "'" + email + "'";
         try (Connection connection = connectionSupplier.get();

@@ -141,7 +141,7 @@ class Friends {
         paragraph.style.wordWrap = `break-word`;
         paragraph.appendChild(document.createTextNode(`id:` + u.id + ` login:` + u.login));
         paragraph.addEventListener(`click`, (evt: Event) => {
-            window.location.href = `/ololo`
+            window.location.href = `/user?id=` + u.id
         }, true);
         this.contentDiv.appendChild(paragraph);
         while (this.contentDiv.childNodes.length > 25) {
