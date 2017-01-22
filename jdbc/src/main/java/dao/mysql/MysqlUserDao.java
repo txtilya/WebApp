@@ -71,6 +71,48 @@ public class MysqlUserDao implements UserDao {
 
     @SneakyThrows
     @Override
+    public boolean isUsersFriendsRequestExist(int id, int id1) {
+        val sql = "SELECT * FROM `friends` WHERE (requester = " + id +
+                " AND responder = " + id1 +
+                " OR requester = " + id1 +
+                " AND responder = " + id +
+                ")";
+        try (Connection connection = connectionSupplier.get();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return resultSet.next();
+            }
+        }
+    }
+
+    @SneakyThrows
+    @Override
+    public void addFriend(int requesterId, int targetId) {
+        val sql = "INSERT INTO `friends` (`id`, `requester`, `responder`, `confirmation`) VALUES (NULL, '" +
+                requesterId + "', '" + targetId + "', '0');";
+        try (Connection connection = connectionSupplier.get();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.executeUpdate();
+        }
+    }
+
+    @SneakyThrows
+    @Override
+    public void delFriend(int requesterId, int targetId) {
+        val sql = "DELETE FROM `friends` WHERE (requester = " + requesterId +
+                " AND responder = " + targetId +
+                " OR requester = " + targetId +
+                " AND responder = " + requesterId +
+                ") AND confirmation = 1";
+        try (Connection connection = connectionSupplier.get();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.executeUpdate();
+        }
+    }
+
+
+    @SneakyThrows
+    @Override
     public Optional<User> getByEmail(String email) {
         val sql = "SELECT id, email, login, password, role FROM `user` WHERE email = " + "'" + email + "'";
         try (Connection connection = connectionSupplier.get();

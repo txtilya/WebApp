@@ -10,10 +10,13 @@ public interface UserDao {
     Collection<User> getAll();
     Collection<User> getFriends(User user);
     boolean isUsersFriends(int id, int id1);
-    public Optional<User> getByEmail(String email);
-    public boolean isUserExist(String login, String email);
+    boolean isUsersFriendsRequestExist(int id, int id1);
+    void addFriend(int requesterId, int targetId);
+    void delFriend(int requesterId, int targetId);
+    Optional<User> getByEmail(String email);
+    boolean isUserExist(String login, String email);
 
-    public void addUser(String login, String email, String pass);
+    void addUser(String login, String email, String pass);
 
     default Optional<User> getById(long id) {
         return getAll().stream()
