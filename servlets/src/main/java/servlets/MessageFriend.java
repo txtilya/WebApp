@@ -37,10 +37,10 @@ public class MessageFriend extends HttpServlet {
         resp.setContentType("text/html;charset=UTF-8");
         int targetId = Integer.parseInt(req.getParameter("id"));
         int requesterId = userDao.getByEmail(req.getUserPrincipal().getName()).get().getId();
-        if (userDao.isUsersFriends(requesterId,targetId)){
-            userDao.delFriend(requesterId,targetId);
-            resp.sendRedirect("deleted.html");
-        } else resp.sendRedirect("deletedfail.html");
+        int dialogId = userDao.getOrCreateDialogId(requesterId, targetId);
+        if (dialogId != 0) {
+            resp.sendRedirect("/conference?id=" + dialogId);
+        } else resp.sendRedirect("conferenceFail.html");
 
 
     }

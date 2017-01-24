@@ -16,6 +16,8 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import static dao.mysql.util.Util.getResultSetRowCount;
+
 @Log
 @AllArgsConstructor
 public class MysqlUserDao implements UserDao {
@@ -162,6 +164,80 @@ public class MysqlUserDao implements UserDao {
         }
     }
 
+    @SneakyThrows
+    @Override
+    public int getOrCreateDialogId(int requesterId, int targetId) {
+        User u = getById(targetId).get();
+        if (!isUserExist(u.getLogin(), u.getEmail())) return 0;
+        int dialogId = getDialog(requesterId, targetId);
+        if (dialogId == 0) {
+            dialogId = createDialogAndAddUsers(requesterId, targetId);
+        }
+        return dialogId;
+    }
+
+
+    @SneakyThrows
+    @Override
+    public int getDialog(int requesterId, int targetId) {
+        int dialogId;
+        val sql = "SELECT conference.id FROM `user_in_conference` first, `user_in_conference` second, `conference`" +
+                " WHERE (first.user_id = " + requesterId + " OR first.user_id = " + targetId +
+                ") AND (second.user_id = " + targetId + " OR second.user_id = " + requesterId + ") " +
+                "AND first.user_id <> second.user_id AND first.conference_id = second.conference_id " +
+                "AND first.conference_id = conference.id AND conference.type = 0 GROUP BY conference.id";
+        try (Connection connection = connectionSupplier.get();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(sql)) {
+            if (resultSet.next()) dialogId = resultSet.getInt("id");
+            else dialogId = 0;
+        }
+        return dialogId;
+    }
+
+    @SneakyThrows
+    @Override
+    public int createDialogAndAddUsers(int requesterId, int targetId) {
+        int dialogId = createDialog();
+        addUserToConference(dialogId, requesterId);
+        addUserToConference(dialogId, targetId);
+        return dialogId;
+    }
+
+    @SneakyThrows
+    @Override
+    public void addUserToConference(int conferenceId, int userId) {
+        val sql = "INSERT INTO `user_in_conference` (`id`, `user_id`, `conference_id`) " +
+                "VALUES (NULL, '" + userId + "', '" + conferenceId + "');";
+        try (Connection connection = connectionSupplier.get();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.executeUpdate();
+        }
+    }
+
+    @SneakyThrows
+    @Override
+    public int createDialog() {
+        int dialogId = getIdForDialog();
+        val sql = "INSERT INTO `conference` (`id`, `type`) VALUES ('" + dialogId + "', '0');";
+        try (Connection connection = connectionSupplier.get();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.executeUpdate();
+        }
+        return dialogId;
+    }
+
+
+    @SneakyThrows
+    @Override
+    public int getIdForDialog() {
+        val sql = "SELECT * FROM `conference`";
+        try (Connection connection = connectionSupplier.get();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(sql)) {
+            return getResultSetRowCount(resultSet) + 1;
+        }
+    }
 
 //    @SneakyThrows
 //    @Override
