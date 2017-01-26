@@ -3,7 +3,6 @@ package listeners;
 import com.hegel.core.StringEncryptUtil;
 import common.ConnectionPool;
 import dao.mysql.MysqlUserDao;
-import dao.mysql.MysqlUserInConferenceDao;
 import lombok.SneakyThrows;
 import lombok.extern.java.Log;
 
@@ -25,7 +24,6 @@ import static com.hegel.core.functions.ExceptionalSupplier.toUncheckedSupplier;
 public class Initer implements ServletContextListener {
 
     public static final String USER_DAO = "userDao";
-    public static final String USER_IN_CONFERENCE_DAO = "userInConferenceDao";
 
     @Resource(name = "jdbc/TestDB")
     private DataSource dataSource;
@@ -35,14 +33,12 @@ public class Initer implements ServletContextListener {
     public void contextInitialized(ServletContextEvent sce) {
 
         ServletContext context = sce.getServletContext();
-
         ConnectionPool connectionPool = ConnectionPool.create(toUncheckedSupplier(dataSource::getConnection));
 
 //        context.getRealPath("/WEB-INF/classes/h2.sql")
 //        encryptPasswords(connectionPool);
 
         context.setAttribute(USER_DAO, new MysqlUserDao(connectionPool));
-        context.setAttribute(USER_IN_CONFERENCE_DAO, new MysqlUserInConferenceDao(connectionPool));
 
     }
 

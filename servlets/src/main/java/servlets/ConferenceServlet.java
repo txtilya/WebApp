@@ -16,8 +16,8 @@ import java.io.IOException;
 import static listeners.Initer.USER_DAO;
 
 @Log
-@WebServlet("/user/*")
-public class UserServlet extends HttpServlet {
+@WebServlet("/conference/*")
+public class ConferenceServlet extends HttpServlet {
 
     private UserDao userDao;
 
@@ -36,8 +36,8 @@ public class UserServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         resp.setContentType("text/html;charset=UTF-8");
-        RequestDispatcher requestDispatcher = req.getRequestDispatcher("/user.jsp");
+        RequestDispatcher requestDispatcher = req.getRequestDispatcher("/conference.jsp");
         requestDispatcher.forward(req, resp);
-
+        
     }
 }

@@ -6,14 +6,11 @@ import lombok.SneakyThrows;
 import lombok.extern.java.Log;
 import lombok.val;
 import model.User;
+import model.messages.ConferenceMessage;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.Statement;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Optional;
+import java.sql.*;
+import java.util.*;
+import java.util.Date;
 import java.util.function.Supplier;
 
 import static dao.mysql.util.Util.getResultSetRowCount;
@@ -219,7 +216,7 @@ public class MysqlUserDao implements UserDao {
     @Override
     public int createDialog() {
         int dialogId = getIdForDialog();
-        val sql = "INSERT INTO `conference` (`id`, `type`) VALUES ('" + dialogId + "', '0');";
+        val sql = "INSERT INTO `conference` (`id`, `type`, `name`) VALUES ('" + dialogId + "', '0', 'default');";
         try (Connection connection = connectionSupplier.get();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.executeUpdate();
@@ -236,6 +233,57 @@ public class MysqlUserDao implements UserDao {
              Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery(sql)) {
             return getResultSetRowCount(resultSet) + 1;
+        }
+    }
+
+
+    @SneakyThrows
+    @Override
+    public int getIdForMessage() {
+        val sql = "SELECT * FROM `user_message`";
+        try (Connection connection = connectionSupplier.get();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(sql)) {
+            return getResultSetRowCount(resultSet) + 1;
+        }
+    }
+
+
+//    rs.getTimestamp("updated_time")
+//    sqlDate = new java.sql.Timestamp(new java.util.Date().getTime());
+
+    @Override
+    public int createMessageAndAddToConference(User u, ConferenceMessage m) {
+        int messageId = 0;
+        if (isUserInConference(u.getId(), Integer.parseInt(m.getConferenceId()))) {
+            Timestamp timestamp = new Timestamp(new Date().getTime());
+            messageId = createMessage(u.getId(), m.getContent(), timestamp);
+        } else return 0;
+        return messageId;
+    }
+
+    @SneakyThrows
+    @Override
+    public int createMessage(int userId, String content, Timestamp timestamp) {
+        int messageId = getIdForMessage();
+        val sql = "INSERT INTO `user_message` (`id`, `user_id`, `content`, `date`) VALUES (NULL, '" +
+                userId + "', '" + content + "', '" + timestamp + "');";
+        try (Connection connection = connectionSupplier.get();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.executeUpdate();
+        }
+        return messageId;
+    }
+
+    @SneakyThrows
+    @Override
+    public boolean isUserInConference(int userId, int conferenceId) {
+        val sql = "SELECT * FROM `user_in_conference` WHERE user_id = " + userId + " AND conference_id = " + conferenceId;
+        try (Connection connection = connectionSupplier.get();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return resultSet.next();
+            }
         }
     }
 

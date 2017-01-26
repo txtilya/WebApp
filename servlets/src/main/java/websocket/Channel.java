@@ -19,11 +19,11 @@ package websocket;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import dao.UserDao;
-import dao.UserInConferenceDao;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.java.Log;
 import model.User;
+import model.messages.ConferenceMessage;
 import model.messages.Message;
 import model.messages.MessageWithUser;
 import util.HTMLFilter;
@@ -38,7 +38,6 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import static listeners.Initer.USER_DAO;
-import static listeners.Initer.USER_IN_CONFERENCE_DAO;
 
 @Log
 @ServerEndpoint(value = "/websocket/{path}", configurator = ServletAwareConfig.class)
@@ -48,7 +47,6 @@ public class Channel {
     private static final Set<Channel> connections =
             new CopyOnWriteArraySet<>();
 
-    private UserInConferenceDao userInConferenceDao;
     private UserDao userDao;
 
     @Getter
@@ -61,7 +59,6 @@ public class Channel {
         HttpSession httpSession = (HttpSession) config.getUserProperties().get("httpSession");
         ServletContext servletContext = httpSession.getServletContext();
 
-        userInConferenceDao = (UserInConferenceDao) servletContext.getAttribute(USER_IN_CONFERENCE_DAO);
         userDao = (UserDao) servletContext.getAttribute(USER_DAO);
 
         String username = (String) httpSession.getAttribute("username");
@@ -97,12 +94,24 @@ public class Channel {
         if (m.getType().equals("INFO")) message = "WORKS!!!";
         if (m.getType().equals("ChangeContent")) changeContent(m.getContent());
         if (m.getType().equals("LoadUserPage")) loadUserPage(m.getContent());
+        if (m.getType().equals("ConferenceMessage")) conferenceMessage(message);
 
         String filteredMessage = String.format("%s: %s",
                 connectionOwner.getLogin(), HTMLFilter.filter(message));
         log.info(message);
 //        broadcast(filteredMessage);
 //        sendToThis(filteredMessage);
+    }
+
+    @SneakyThrows
+    private void conferenceMessage(String message) {
+        ObjectMapper mapper = new ObjectMapper();
+        ConferenceMessage m = mapper.readValue(message, ConferenceMessage.class);
+        int messageId = userDao.createMessageAndAddToConference(connectionOwner, m);
+//        if ( messageId != 0) {
+//            addNotification("NewMessageInConference", m.getConferenceId(), messageId);
+//            sendMessageToUsers(m);
+//        }
     }
 
     @SneakyThrows

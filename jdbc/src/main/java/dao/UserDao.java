@@ -1,7 +1,9 @@
 package dao;
 
 import model.User;
+import model.messages.ConferenceMessage;
 
+import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.Optional;
 
@@ -29,4 +31,13 @@ public interface UserDao {
     void addUserToConference(int conferenceId, int userId);
     int createDialog();
     int getIdForDialog();
+
+
+    int getIdForMessage();
+
+    int createMessageAndAddToConference(User u, ConferenceMessage m);
+
+    int createMessage(int userId, String content, Timestamp timestamp);
+
+    boolean isUserInConference(int userId, int conferenceId);
 }
