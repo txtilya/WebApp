@@ -26,6 +26,7 @@ import model.User;
 import model.messages.ConferenceMessage;
 import model.messages.Message;
 import model.messages.MessageWithUser;
+import model.messages.OutputMessage;
 import util.HTMLFilter;
 
 import javax.servlet.ServletContext;
@@ -108,11 +109,31 @@ public class Channel {
         ObjectMapper mapper = new ObjectMapper();
         ConferenceMessage m = mapper.readValue(message, ConferenceMessage.class);
         int messageId = userDao.createMessageAndAddToConference(connectionOwner, m);
-//        if ( messageId != 0) {
-//            addNotification("NewMessageInConference", m.getConferenceId(), messageId);
-//            sendMessageToUsers(m);
-//        }
+        if (messageId != 0) {
+            OutputMessage o = new OutputMessage(m.getType(), m.getContent(), m.getConferenceId(),
+                    messageId, 0, connectionOwner.getLogin());
+            Collection<Integer> usersIds = userDao.getUsersIdsFromConference(Integer.parseInt(o.getConferenceId()));
+            sendMessageToUsers(usersIds, o);
+//            createNotification();
+        }
     }
+
+    private void sendMessageToUsers(Collection<Integer> usersIds, OutputMessage o) {
+        for (int userId : usersIds) {
+            for (Channel client : connections) {
+                if (userId == client.getConnectionOwner().getId()) {
+                    sendToClient(toJson(o), client);
+                }
+            }
+        }
+    }
+
+    @SneakyThrows
+    private String toJson(Object o) {
+        ObjectMapper om = new ObjectMapper();
+        return om.writeValueAsString(o);
+    }
+
 
     @SneakyThrows
     private void loadUserPage(String content) {
@@ -149,31 +170,34 @@ public class Channel {
 
     }
 
-    @SneakyThrows
-    private void sendToThis(String msg) {
-        synchronized (this) {
-            this.session.getBasicRemote().sendText(msg);
-        }
-    }
 
-    private void broadcast(String msg) {
-        for (Channel client : connections) {
+    private void sendToClient(String msg, Channel channel) {
+        synchronized (channel) {
             try {
-                synchronized (client) {
-                    client.session.getBasicRemote().sendText(msg);
-                }
+                channel.session.getBasicRemote().sendText(msg);
             } catch (IOException e) {
                 log.info("Chat Error: Failed to send message to client");
-                connections.remove(client);
+                connections.remove(channel);
                 try {
-                    client.session.close();
+                    channel.session.close();
                 } catch (IOException e1) {
                     // Ignore
                 }
                 String message = String.format("* %s %s",
-                        client.connectionOwner.getLogin(), "has been disconnected.");
+                        channel.connectionOwner.getLogin(), "has been disconnected.");
                 log.info(message);
             }
+        }
+    }
+
+    @SneakyThrows
+    private void sendToThis(String msg) {
+        sendToClient(msg, this);
+    }
+
+    private void broadcast(String msg) {
+        for (Channel client : connections) {
+            sendToClient(msg, client);
         }
     }
 }

@@ -54,7 +54,7 @@ class Conference {
             this.sendMessageToConference(this.requestedConferenceId, this.messageInput.value)
             // this.doSend(this.messageInput.value);
             this.messageInput.value = "";
-            this.contentDiv.innerHTML = ``;
+            // this.contentDiv.innerHTML = ``;
             evt.preventDefault();
         }, true);
 
@@ -90,7 +90,21 @@ class Conference {
     private messageDispatcher(evt: MessageEvent) {
         // this.writeToScreen(`Message Received: ${evt.data}`);
         var m = JSON.parse(evt.data);
-        if (m.type == `ShowMessagesInConference`) {};
+        if (m.type == `ConferenceMessage`) {this.writeMessage (m)};
+    }
+
+    private writeMessage(m: IncConfMsg) {
+        const paragraph = document.createElement(`p`);
+        paragraph.style.wordWrap = `break-word`;
+        paragraph.appendChild(document.createTextNode(m.creator + `: ` + m.content));
+        // paragraph.addEventListener(`click`, (evt: Event) => {
+        //     window.location.href = `/user?id=` + u.id
+        // }, true);
+        this.contentDiv.appendChild(paragraph);
+        while (this.contentDiv.childNodes.length > 25) {
+            this.contentDiv.removeChild(this.contentDiv.firstChild);
+        }
+        this.contentDiv.scrollTop = this.contentDiv.scrollHeight;
     }
 
 

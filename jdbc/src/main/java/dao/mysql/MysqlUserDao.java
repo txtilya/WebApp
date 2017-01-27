@@ -54,6 +54,20 @@ public class MysqlUserDao implements UserDao {
 
     @SneakyThrows
     @Override
+    public Collection<Integer> getUsersIdsFromConference(int conferenceId) {
+        val ids = new HashSet<Integer>();
+        val sql = "SELECT user_id FROM `user_in_conference` WHERE conference_id = '" + conferenceId + "';";
+        try (Connection connection = connectionSupplier.get();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(sql)) {
+            while (resultSet.next())
+                ids.add(resultSet.getInt("user_id"));
+        }
+        return ids;
+    }
+
+    @SneakyThrows
+    @Override
     public boolean isUsersFriends(int id, int id1) {
         val sql = "SELECT * FROM `friends` WHERE (requester = " + id +
                 " AND responder = " + id1 +
@@ -257,17 +271,18 @@ public class MysqlUserDao implements UserDao {
         int messageId = 0;
         if (isUserInConference(u.getId(), Integer.parseInt(m.getConferenceId()))) {
             Timestamp timestamp = new Timestamp(new Date().getTime());
-            messageId = createMessage(u.getId(), m.getContent(), timestamp);
+            messageId = createMessage(u.getId(), m.getContent(), timestamp, Integer.parseInt(m.getConferenceId()));
         } else return 0;
         return messageId;
     }
 
     @SneakyThrows
     @Override
-    public int createMessage(int userId, String content, Timestamp timestamp) {
+    public int createMessage(int userId, String content, Timestamp timestamp, int conferenceId) {
         int messageId = getIdForMessage();
-        val sql = "INSERT INTO `user_message` (`id`, `user_id`, `content`, `date`) VALUES (NULL, '" +
-                userId + "', '" + content + "', '" + timestamp + "');";
+        val sql = "INSERT INTO `user_message` (`id`, `user_id`, `content`, `date`, `readed`, `conference_id`) " +
+                "VALUES ('" + messageId + "', '" + userId + "', '" + content + "', '" + timestamp + "', '0', '" +
+                conferenceId + "');";
         try (Connection connection = connectionSupplier.get();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.executeUpdate();

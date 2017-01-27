@@ -19,6 +19,8 @@ public interface UserDao {
     Collection<User> getFriends(User user);
     Optional<User> getByEmail(String email);
 
+
+    Collection<Integer> getUsersIdsFromConference(int conferenceId);
     boolean isUsersFriends(int id, int id1);
     boolean isUsersFriendsRequestExist(int id, int id1);
     void addFriend(int requesterId, int targetId);
@@ -37,7 +39,7 @@ public interface UserDao {
 
     int createMessageAndAddToConference(User u, ConferenceMessage m);
 
-    int createMessage(int userId, String content, Timestamp timestamp);
+    int createMessage(int userId, String content, Timestamp timestamp, int conferenceId);
 
     boolean isUserInConference(int userId, int conferenceId);
 }

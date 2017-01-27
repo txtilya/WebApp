@@ -43,15 +43,15 @@
     <security-constraint>
         <web-resource-collection>
             <web-resource-name>Registration Page</web-resource-name>
-            <url-pattern>/registration.html</url-pattern>
+            <url-pattern>/registration</url-pattern>
         </web-resource-collection>
         <!-- OMIT auth-constraint -->
     </security-constraint>
 
     <security-constraint>
         <web-resource-collection>
-            <web-resource-name>Registraton Servlet</web-resource-name>
-            <url-pattern>/registration</url-pattern>
+            <web-resource-name>Registration Page</web-resource-name>
+            <url-pattern>/registration.html</url-pattern>
         </web-resource-collection>
         <!-- OMIT auth-constraint -->
     </security-constraint>
