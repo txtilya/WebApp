@@ -1,8 +1,9 @@
 interface IncConfMsg {
     type: string;
-    content: any;
-    conferenceId: number;
+    content: string;
+    conferenceId: string ;
     messageId: number;
     readied: number;
     creator: string;
+    timestamp: string;
 }

@@ -23,10 +23,7 @@ import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.java.Log;
 import model.User;
-import model.messages.ConferenceMessage;
-import model.messages.Message;
-import model.messages.MessageWithUser;
-import model.messages.OutputMessage;
+import model.messages.*;
 import util.HTMLFilter;
 
 import javax.servlet.ServletContext;
@@ -34,7 +31,9 @@ import javax.servlet.http.HttpSession;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -95,7 +94,9 @@ public class Channel {
         if (m.getType().equals("INFO")) message = "WORKS!!!";
         if (m.getType().equals("ChangeContent")) changeContent(m.getContent());
         if (m.getType().equals("LoadUserPage")) loadUserPage(m.getContent());
+        if (m.getType().equals("getConferenceName")) loadConferenceName(m.getContent());
         if (m.getType().equals("ConferenceMessage")) conferenceMessage(message);
+        if (m.getType().equals("SearchFriends")) searchFriends(m.getContent());
 
         String filteredMessage = String.format("%s: %s",
                 connectionOwner.getLogin(), HTMLFilter.filter(message));
@@ -104,6 +105,16 @@ public class Channel {
 //        sendToThis(filteredMessage);
     }
 
+    private void searchFriends(String idOrLogin) {
+        MessageWithUsers m = new MessageWithUsers("notFriends",
+                userDao.getUsersByIdOrLogin(connectionOwner, idOrLogin));
+        String u = toJson(m);
+        sendToThis(u);
+        log.info(u);
+
+    }
+
+
     @SneakyThrows
     private void conferenceMessage(String message) {
         ObjectMapper mapper = new ObjectMapper();
@@ -111,7 +122,7 @@ public class Channel {
         int messageId = userDao.createMessageAndAddToConference(connectionOwner, m);
         if (messageId != 0) {
             OutputMessage o = new OutputMessage(m.getType(), m.getContent(), m.getConferenceId(),
-                    messageId, 0, connectionOwner.getLogin());
+                    messageId, 0, connectionOwner.getLogin(), new Timestamp(new Date().getTime()));
             Collection<Integer> usersIds = userDao.getUsersIdsFromConference(Integer.parseInt(o.getConferenceId()));
             sendMessageToUsers(usersIds, o);
 //            createNotification();
@@ -156,18 +167,35 @@ public class Channel {
         log.info(arrayToJson);
     }
 
-    @SneakyThrows
-    private void changeContent(String content) {
-//        Collection<User> users = userDao.getAll();
-        if (content.equals("friends")) {
-            Collection<User> users = userDao.getFriends(connectionOwner);
-            ObjectMapper objectMapper = new ObjectMapper();
-            objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-            String arrayToJson = objectMapper.writeValueAsString(users);
-            sendToThis(arrayToJson);
-            log.info(arrayToJson);
-        }
 
+    private void loadConferenceName(String content) {
+        int ownersId = connectionOwner.getId();
+        int conferenceId = Integer.parseInt(content);
+        if (userDao.isUserInConference(ownersId, conferenceId)) {
+            sendToThis(toJson(new Message("getConferenceName", userDao.getConferenceNameById(conferenceId))));
+        }
+    }
+
+    private void changeContent(String content) {
+        if (content.equals("friends")) getFriends();
+        if (content.equals("requests")) getRequests();
+
+    }
+
+    private void getRequests() {
+        MessageWithUsers m = new MessageWithUsers("requests",
+                userDao.getFriendsRequests(connectionOwner));
+        String u = toJson(m);
+        sendToThis(u);
+        log.info(u);
+    }
+
+    private void getFriends() {
+        MessageWithUsers m = new MessageWithUsers("friends",
+                userDao.getFriends(connectionOwner));
+        String u = toJson(m);
+        sendToThis(u);
+        log.info(u);
     }
 
 

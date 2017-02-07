@@ -4,6 +4,8 @@ package model.messages;
 import lombok.AllArgsConstructor;
 import lombok.Value;
 
+import java.sql.Timestamp;
+
 @Value
 @AllArgsConstructor
 public class OutputMessage {
@@ -13,5 +15,5 @@ public class OutputMessage {
     int messageId;
     int readied;
     String creator;
-
+    Timestamp timestamp;
 }

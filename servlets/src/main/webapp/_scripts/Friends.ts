@@ -8,7 +8,7 @@ class Friends {
     //c3 elements
     private myFriends: HTMLLinkElement;
     private requests: HTMLLinkElement;
-    private search: HTMLLinkElement;
+    private searchInput: HTMLInputElement;
 
     //const part
     private static readonly WS_URI = `ws://` + window.location.host + `/websocket/message`;
@@ -27,17 +27,17 @@ class Friends {
         this.myFriends = document.getElementById(myFriendsId) as HTMLLinkElement;
         var requestsId = `c3requests`;
         this.requests = document.getElementById(requestsId) as HTMLLinkElement;
-        var searchId = `c3search`;
-        this.search = document.getElementById(searchId) as HTMLLinkElement;
+        var searchInputId = `search`;
+        this.searchInput = document.getElementById(searchInputId) as HTMLInputElement;
 
         //listeners
 
-        // this.input.form.addEventListener(`submit`, (evt: Event) => {
-        //     this.doSend(this.input.value);
-        //     this.input.value = "";
-        //     this.contentDiv.innerHTML = ``;
-        //     evt.preventDefault();
-        // }, true);
+        this.searchInput.form.addEventListener(`submit`, (evt: Event) => {
+            this.searchFriends(this.searchInput.value);
+            // this.contentDiv.innerHTML = ``;
+            // this.searchInput.value = ``;
+            evt.preventDefault();
+        }, true);
 
         this.myFriends.addEventListener(`click`, (evt: Event) => {
             evt.preventDefault();
@@ -50,13 +50,7 @@ class Friends {
             this.loadContent("requests");
             evt.preventDefault()
         }, true);
-
-        this.search.addEventListener(`click`, (evt: Event) => {
-            evt.preventDefault();
-            this.loadContent("search");
-            evt.preventDefault()
-        }, true);
-
+        
 
         //const part
         this.initParam = window.location.protocol == `http:` ? Friends.WS_URI : Friends.WSS_URI;
@@ -78,14 +72,14 @@ class Friends {
     private messageDispatcher(evt: MessageEvent) {
         // this.writeToScreen(`Message Received: ${evt.data}`);
         var m = JSON.parse(evt.data);
-        this.changeContentFriends(m);
+        if (m.roleForRequester != ` `) this.changeContentFriends(m);
     }
 
-    private changeContentFriends(m: any) {
+    private changeContentFriends(m: MessageWithUsers) {
         this.contentDiv.innerHTML = ``;
-        for (var i = 0; i < m.length; i++) {
-            var current = m[i];
-            this.writeUser(current)
+        for (var i = 0; i < m.users.length; i++) {
+            var current = m.users[i];
+            this.writeUser(current, m.roleForRequester)
         }
     }
 
@@ -117,7 +111,7 @@ class Friends {
     }
 
     private onOpenDispatcher() {
-        this.sendMessage('INFO', 'Hello!')
+        this.sendMessage('INFO', 'Hello!');
         this.loadContent("friends");
     }
 
@@ -136,7 +130,8 @@ class Friends {
         this.contentDiv.scrollTop = this.contentDiv.scrollHeight;
     }
 
-    public writeUser(u: User) {
+    public writeUser(u: User, roleForRequester: String) {
+
         const paragraph = document.createElement(`p`);
         paragraph.style.wordWrap = `break-word`;
         paragraph.appendChild(document.createTextNode(`id:` + u.id + ` login:` + u.login));
@@ -144,9 +139,75 @@ class Friends {
             window.location.href = `/user?id=` + u.id
         }, true);
         this.contentDiv.appendChild(paragraph);
-        while (this.contentDiv.childNodes.length > 25) {
-            this.contentDiv.removeChild(this.contentDiv.firstChild);
+
+        // if (roleForRequester == `notFriends`) {
+        //     const href1 = document.createElement(`a`);
+        //     href1.style.wordWrap = `break-word`;
+        //     href1.setAttribute(`href`, `/add?id=` + u.id);
+        //     href1.innerHTML = `/Add to friends/ `;
+        //
+        //     const href2 = document.createElement(`a`);
+        //     href2.style.wordWrap = `break-word`;
+        //     href2.setAttribute(`href`, `/message?id=` + u.id);
+        //     href2.innerHTML = `/Message/ `;
+        //
+        //     this.contentDiv.appendChild(href1);
+        //     this.contentDiv.appendChild(href2);
+        //
+        // }
+
+        if (roleForRequester == `friends`) {
+            const href1 = document.createElement(`a`);
+            href1.style.wordWrap = `break-word`;
+            href1.setAttribute(`href`, `/remove?id=` + u.id);
+            href1.innerHTML = `/Remove/ `;
+
+            const href2 = document.createElement(`a`);
+            href2.style.wordWrap = `break-word`;
+            href2.setAttribute(`href`, `/message?id=` + u.id);
+            href2.innerHTML = `/Message/ `;
+
+            this.contentDiv.appendChild(href1);
+            this.contentDiv.appendChild(href2);
+
         }
-        this.contentDiv.scrollTop = this.contentDiv.scrollHeight;
+
+        if (roleForRequester == `requests`) {
+            const href1 = document.createElement(`a`);
+            href1.style.wordWrap = `break-word`;
+            href1.setAttribute(`href`, `/confirm?id=` + u.id);
+            href1.innerHTML = `/Confirm/ `;
+
+            const href2 = document.createElement(`a`);
+            href2.style.wordWrap = `break-word`;
+            href2.setAttribute(`href`, `/reject?id=` + u.id);
+            href2.innerHTML = `/Reject/ `;
+
+            const href3 = document.createElement(`a`);
+            href3.style.wordWrap = `break-word`;
+            href3.setAttribute(`href`, `/message?id=` + u.id);
+            href3.innerHTML = `/Message/ `;
+
+            this.contentDiv.appendChild(href1);
+            this.contentDiv.appendChild(href2);
+            this.contentDiv.appendChild(href3);
+
+        }
+        this.contentDiv.appendChild(document.createElement(`br`));
+        this.contentDiv.appendChild(document.createElement(`br`));
+
+
+        // while (this.contentDiv.childNodes.length > 25) {
+        //     this.contentDiv.removeChild(this.contentDiv.firstChild);
+        // }
+        // this.contentDiv.scrollTop = this.contentDiv.scrollHeight;
+    }
+
+    private searchFriends(value: string) {
+        var command: Message = {
+            type: 'SearchFriends',
+            content: value
+        };
+        this.webSocket.send(JSON.stringify(command));
     }
 }

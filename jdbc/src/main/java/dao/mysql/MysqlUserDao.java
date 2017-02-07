@@ -54,6 +54,22 @@ public class MysqlUserDao implements UserDao {
 
     @SneakyThrows
     @Override
+    public Collection<User> getFriendsRequests(User user) {
+        int userId = user.getId();
+        val users = new HashSet<User>();
+        val sql = "SELECT id, email, login, password, role FROM `user` WHERE id IN " +
+                "(SELECT requester FROM `friends` WHERE responder = '" + userId + "' AND confirmation = '0')";
+        try (Connection connection = connectionSupplier.get();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(sql)) {
+            while (resultSet.next())
+                users.add(User.getFrom(resultSet));
+        }
+        return users;
+    }
+
+    @SneakyThrows
+    @Override
     public Collection<Integer> getUsersIdsFromConference(int conferenceId) {
         val ids = new HashSet<Integer>();
         val sql = "SELECT user_id FROM `user_in_conference` WHERE conference_id = '" + conferenceId + "';";
@@ -137,6 +153,22 @@ public class MysqlUserDao implements UserDao {
         }
     }
 
+    @Override
+    @SneakyThrows
+    public Collection<User> getUsersByIdOrLogin(User user, String idOrLogin) {
+        int userId = user.getId();
+        val users = new HashSet<User>();
+        val sql = "SELECT id, email, login, password, role FROM `user` WHERE id = '" +
+                idOrLogin + "' OR login = '" + idOrLogin + "'";
+        try (Connection connection = connectionSupplier.get();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(sql)) {
+            while (resultSet.next())
+                users.add(User.getFrom(resultSet));
+        }
+        return users;
+    }
+
     @SneakyThrows
     @Override
     public Optional<User> getById(long id) {
@@ -178,11 +210,27 @@ public class MysqlUserDao implements UserDao {
     @SneakyThrows
     @Override
     public int getOrCreateDialogId(int requesterId, int targetId) {
+        int cid = 0;
         User u = getById(targetId).get();
         if (!isUserExist(u.getLogin(), u.getEmail())) return 0;
-        int dialogId = getDialog(requesterId, targetId);
-        if (dialogId == 0) {
-            dialogId = createDialogAndAddUsers(requesterId, targetId);
+        if (requesterId != targetId) cid = getDialog(requesterId, targetId);
+        else cid = getMonolog(requesterId);
+        if (cid == 0) {
+            cid = createDialogAndAddUsers(requesterId, targetId);
+        }
+        return cid;
+    }
+
+    @SneakyThrows
+    private int getMonolog(int requesterId) {
+        int dialogId;
+        val sql = "SELECT conference.id FROM `user_in_conference` first, `user_in_conference` second, `conference` " +
+                "WHERE (first.user_id = " + requesterId + " AND first.user_id = " + requesterId + ") GROUP BY conference.id";
+        try (Connection connection = connectionSupplier.get();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(sql)) {
+            if (resultSet.next()) dialogId = resultSet.getInt("id");
+            else dialogId = 0;
         }
         return dialogId;
     }
@@ -290,6 +338,7 @@ public class MysqlUserDao implements UserDao {
         return messageId;
     }
 
+
     @SneakyThrows
     @Override
     public boolean isUserInConference(int userId, int conferenceId) {
@@ -300,6 +349,16 @@ public class MysqlUserDao implements UserDao {
                 return resultSet.next();
             }
         }
+    }
+
+    @Override
+    public String getConferenceNameById(int conferenceId) {
+        String out = "Conference: ";
+        Collection<Integer> ids = getUsersIdsFromConference(conferenceId);
+        for (int userId : ids) {
+            out += getById(userId).get().getLogin() + "/";
+        }
+        return out;
     }
 
 //    @SneakyThrows

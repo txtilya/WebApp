@@ -21,9 +21,11 @@ class Conference {
 
     private webSocket: WebSocket;
     private initParam: string;
+    private messagesCount: number;
 
     constructor() {
         this.state = 0;
+        this.messagesCount = 30;
 
         //finding elements
 
@@ -90,28 +92,27 @@ class Conference {
     private messageDispatcher(evt: MessageEvent) {
         // this.writeToScreen(`Message Received: ${evt.data}`);
         var m = JSON.parse(evt.data);
-        if (m.type == `ConferenceMessage`) {this.writeMessage (m)};
+        if (m.type == `ConferenceMessage`) {this.writeMessage(m)}
+        if (m.type == `getConferenceName`) {this.setConferenceName(m.content)}
+
     }
 
     private writeMessage(m: IncConfMsg) {
+        var d = new Date(m.timestamp);
         const paragraph = document.createElement(`p`);
         paragraph.style.wordWrap = `break-word`;
-        paragraph.appendChild(document.createTextNode(m.creator + `: ` + m.content));
+        paragraph.appendChild(document.createTextNode(d.getHours() + `:` + d.getMinutes() + `:` +
+            d.getSeconds() + ` id:` + m.messageId +   ` ` + m.creator + `: ` + m.content));
         // paragraph.addEventListener(`click`, (evt: Event) => {
         //     window.location.href = `/user?id=` + u.id
         // }, true);
+
         this.contentDiv.appendChild(paragraph);
+        // this.contentDiv.insertBefore(paragraph, this.contentDiv.firstChild)
         while (this.contentDiv.childNodes.length > 25) {
             this.contentDiv.removeChild(this.contentDiv.firstChild);
         }
         this.contentDiv.scrollTop = this.contentDiv.scrollHeight;
-    }
-
-
-    private doSend(message: string) {
-        if (message != ``) {
-            this.webSocket.send(message);
-        }
     }
 
 
@@ -120,6 +121,8 @@ class Conference {
     }
 
     private onOpenDispatcher() {
+        this.getConferenceName(this.requestedConferenceId);
+        this.getMessages(this.requestedConferenceId, this.messagesCount)
     }
 
     public writeError(message: string) {
@@ -131,9 +134,9 @@ class Conference {
         paragraph.style.wordWrap = `break-word`;
         paragraph.appendChild(document.createTextNode(message));
         this.contentDiv.appendChild(paragraph);
-        while (this.contentDiv.childNodes.length > 25) {
-            this.contentDiv.removeChild(this.contentDiv.firstChild);
-        }
+        // while (this.contentDiv.childNodes.length > 25) {
+        //     this.contentDiv.removeChild(this.contentDiv.firstChild);
+        // }
         this.contentDiv.scrollTop = this.contentDiv.scrollHeight;
     }
 
@@ -145,16 +148,16 @@ class Conference {
             window.location.href = `/user?id=` + u.id
         }, true);
         this.contentDiv.appendChild(paragraph);
-        while (this.contentDiv.childNodes.length > 25) {
-            this.contentDiv.removeChild(this.contentDiv.firstChild);
-        }
+        // while (this.contentDiv.childNodes.length > 25) {
+        //     this.contentDiv.removeChild(this.contentDiv.firstChild);
+        // }
         this.contentDiv.scrollTop = this.contentDiv.scrollHeight;
     }
 
 
-
     private moreClickDispatcher() {
-
+        this.messagesCount *= 2;
+        this.getMessages(this.requestedConferenceId, this.messagesCount)
     }
 
     private addClickDispatcher() {
@@ -163,11 +166,30 @@ class Conference {
 
 
     private sendMessageToConference(conferenceId: string, content: string) {
-        var command: ConferenceMessage = {
-            type: 'ConferenceMessage',
-            content: content,
-            conferenceId: conferenceId
+        if (content != ``) {
+            var command: ConferenceMessage = {
+                type: 'ConferenceMessage',
+                content: content,
+                conferenceId: conferenceId
+            };
+            this.webSocket.send(JSON.stringify(command))
+        }
+    }
+
+    private getConferenceName(requestedConferenceId: string) {
+        var command: Message = {
+            type: 'getConferenceName',
+            content: requestedConferenceId,
         };
-        this.doSend(JSON.stringify(command))
+        this.webSocket.send(JSON.stringify(command))
+
+    }
+
+    private getMessages(requestedConferenceId: string, messagesCount: number) {
+
+    }
+
+    private setConferenceName(content: string) {
+        this.header.innerHTML = content
     }
 }
