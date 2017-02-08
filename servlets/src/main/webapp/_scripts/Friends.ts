@@ -124,10 +124,6 @@ class Friends {
         paragraph.style.wordWrap = `break-word`;
         paragraph.appendChild(document.createTextNode(message));
         this.contentDiv.appendChild(paragraph);
-        while (this.contentDiv.childNodes.length > 25) {
-            this.contentDiv.removeChild(this.contentDiv.firstChild);
-        }
-        this.contentDiv.scrollTop = this.contentDiv.scrollHeight;
     }
 
     public writeUser(u: User, roleForRequester: String) {
@@ -159,8 +155,8 @@ class Friends {
         if (roleForRequester == `friends`) {
             const href1 = document.createElement(`a`);
             href1.style.wordWrap = `break-word`;
-            href1.setAttribute(`href`, `/remove?id=` + u.id);
-            href1.innerHTML = `/Remove/ `;
+            href1.setAttribute(`href`, `/remove?del=` + u.id);
+            href1.innerHTML = `/Delete/ `;
 
             const href2 = document.createElement(`a`);
             href2.style.wordWrap = `break-word`;

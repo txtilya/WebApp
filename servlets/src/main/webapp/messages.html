@@ -5,13 +5,24 @@
     <title>WebApp</title>
     <style type="text/css">
 
-        #col1 {
-            vertical-align: top;
-            width: 25%;
+        table {
+            width: 100%
         }
 
-        h1, form {
-            /*text-align: center;*/
+        #col1 {
+            vertical-align: top;
+            width: 15%;
+        }
+
+        #col2 {
+            text-align: left;
+            vertical-align: top;
+            width: 70%;
+        }
+
+        #col3 {
+            vertical-align: top;
+            width: 15%;
         }
 
         input#message {
@@ -20,15 +31,15 @@
         }
 
         #content-container {
-            width: 450px;
+            width: 95%
         }
 
         #content {
             border: 1px solid #CCCCCC;
             border-right-color: #999999;
             border-bottom-color: #999999;
-            height: 400px;
             overflow-y: scroll;
+            height: 350px;
             padding: 5px;
             width: 100%;
         }
@@ -44,9 +55,9 @@
 
     </style>
 
-    <script src="_scripts/NewSocketChannel.js"></script>
+    <script src="_scripts/Messages.js"></script>
     <script>
-        addEventListener("DOMContentLoaded", () => new NewSocketChannel());
+        addEventListener("DOMContentLoaded", () => new Messages());
     </script>
 
 </head>
@@ -56,26 +67,23 @@
     <table>
         <tr>
             <td id="col1">
-                <a href="index.html">Index</a><br>
+                <a href="info.html">Info</a><br>
                 <a href="messages.html">Messages</a><br>
                 <a href="friends.html">Friends</a><br><br>
                 <a href="/logout"> Logout</a>
             </td>
-            <td>
+            <td id="col2">
                 <div>
                     <div id="content-container">
                         <div id="content"></div>
                     </div>
                 </div>
             </td>
+            <td id="col3">
+            </td>
         </tr>
     </table>
 </div>
-
-<!--<form action="">-->
-<!--<input id="message" name="message" placeholder="type and press enter to chat" autocomplete="off" autofocus>-->
-<!--<input type="submit" value="Send">-->
-<!--</form>-->
 
 
 </body>

@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.java.Log;
 import lombok.val;
+import model.Conference;
 import model.User;
 import model.messages.ConferenceMessage;
 
@@ -67,6 +68,36 @@ public class MysqlUserDao implements UserDao {
         }
         return users;
     }
+
+    @SneakyThrows
+    @Override
+    public Collection<Conference> getConferences(User u) {
+        val ids = getConferenceIdsByUser(u);
+        val conferences = new HashSet<Conference>();
+        for (int id : ids) {
+            conferences.add(new Conference(id, getConferenceNameById(id)));
+        }
+        return conferences;
+    }
+
+    @SneakyThrows
+    @Override
+    public Collection<Integer> getConferenceIdsByUser(User u) {
+        int userId = u.getId();
+        val ids = new HashSet<Integer>();
+        val sql = "SELECT conference_id FROM `user_in_conference` WHERE  user_id = '" + userId +
+                "' GROUP BY conference_id";
+        try (Connection connection = connectionSupplier.get();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(sql)) {
+            while (resultSet.next())
+                ids.add(resultSet.getInt("conference_id"));
+        }
+        return ids;
+    }
+
+
+
 
     @SneakyThrows
     @Override

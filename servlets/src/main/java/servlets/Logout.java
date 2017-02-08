@@ -21,6 +21,6 @@ public class Logout extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         req.logout();
-        resp.sendRedirect("index.html");
+        resp.sendRedirect("info.html");
     }
 }

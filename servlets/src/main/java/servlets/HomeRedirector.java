@@ -11,7 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @Log
-@WebServlet("/index.html")
+@WebServlet("/info.html")
 public class HomeRedirector extends HttpServlet {
 
 

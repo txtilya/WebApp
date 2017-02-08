@@ -1,6 +1,7 @@
 package dao;
 
 import lombok.SneakyThrows;
+import model.Conference;
 import model.User;
 import model.messages.ConferenceMessage;
 
@@ -24,6 +25,11 @@ public interface UserDao {
     @SneakyThrows
     Collection<User> getUsersByIdOrLogin(User user, String idOrLogin);
     Collection<User> getFriendsRequests(User user);
+    Collection<Conference> getConferences(User u);
+
+    @SneakyThrows
+    Collection<Integer> getConferenceIdsByUser(User u);
+
     Collection<Integer> getUsersIdsFromConference(int conferenceId);
     boolean isUsersFriends(int id, int id1);
     boolean isUsersFriendsRequestExist(int id, int id1);
@@ -48,6 +54,4 @@ public interface UserDao {
     boolean isUserInConference(int userId, int conferenceId);
 
     String getConferenceNameById(int conferenceId);
-
-
 }

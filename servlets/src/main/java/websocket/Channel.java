@@ -97,12 +97,22 @@ public class Channel {
         if (m.getType().equals("getConferenceName")) loadConferenceName(m.getContent());
         if (m.getType().equals("ConferenceMessage")) conferenceMessage(message);
         if (m.getType().equals("SearchFriends")) searchFriends(m.getContent());
+        if (m.getType().equals("getConferences")) getConferences();
 
         String filteredMessage = String.format("%s: %s",
                 connectionOwner.getLogin(), HTMLFilter.filter(message));
         log.info(message);
 //        broadcast(filteredMessage);
 //        sendToThis(filteredMessage);
+    }
+
+    private void getConferences() {
+        MessageWithConferences m = new MessageWithConferences("getConferences",
+                userDao.getConferences(connectionOwner));
+        String u = toJson(m);
+        sendToThis(u);
+        log.info(u);
+
     }
 
     private void searchFriends(String idOrLogin) {
