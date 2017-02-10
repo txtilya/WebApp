@@ -97,8 +97,6 @@ public class MysqlUserDao implements UserDao {
     }
 
 
-
-
     @SneakyThrows
     @Override
     public Collection<Integer> getUsersIdsFromConference(int conferenceId) {
@@ -390,6 +388,35 @@ public class MysqlUserDao implements UserDao {
             out += getById(userId).get().getLogin() + "/";
         }
         return out;
+    }
+
+    @SneakyThrows
+    @Override
+    public boolean confirmFriends(int requesterId, int responderId) {
+        val sql = "UPDATE `friends` SET `confirmation` = '1' WHERE `friends`.`requester` = " + requesterId +
+                " AND `friends`.`responder` = " + responderId + ";";
+        try (Connection connection = connectionSupplier.get();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            int rows = statement.executeUpdate();
+            log.info(String.valueOf(rows));
+            if (rows != 0) return true;
+            else return false;
+        }
+
+    }
+
+    @SneakyThrows
+    @Override
+    public boolean rejectFriends(int requesterId, int responderId) {
+        val sql = "DELETE FROM `friends` WHERE `friends`.`requester` = " + requesterId +
+                " AND `friends`.`responder` = " + responderId + ";";
+        try (Connection connection = connectionSupplier.get();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            int rows = statement.executeUpdate();
+            if (rows != 0) return true;
+            else return false;
+        }
+
     }
 
 //    @SneakyThrows

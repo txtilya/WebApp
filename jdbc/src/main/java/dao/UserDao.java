@@ -43,15 +43,11 @@ public interface UserDao {
     void addUserToConference(int conferenceId, int userId);
     int createDialog();
     int getIdForDialog();
-
-
     int getIdForMessage();
-
     int createMessageAndAddToConference(User u, ConferenceMessage m);
-
     int createMessage(int userId, String content, Timestamp timestamp, int conferenceId);
-
     boolean isUserInConference(int userId, int conferenceId);
-
     String getConferenceNameById(int conferenceId);
+    boolean confirmFriends(int requesterId, int responderId);
+    boolean rejectFriends(int requesterId, int responderId);
 }
