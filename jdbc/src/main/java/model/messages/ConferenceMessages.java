@@ -1,14 +1,13 @@
 package model.messages;
 
-
 import lombok.AllArgsConstructor;
 import lombok.Value;
 
+import java.util.Collection;
+
 @Value
 @AllArgsConstructor
-public class ConferenceMessage {
+public class ConferenceMessages {
     String type;
-    String content;
-    String conferenceId;
-
+    Collection<OutputMessage> messages;
 }

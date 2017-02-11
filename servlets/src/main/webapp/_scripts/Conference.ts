@@ -23,9 +23,10 @@ class Conference {
     private initParam: string;
     private messagesCount: number;
 
+
     constructor() {
         this.state = 0;
-        this.messagesCount = 30;
+        this.messagesCount = 100;
 
         //finding elements
 
@@ -92,8 +93,12 @@ class Conference {
     private messageDispatcher(evt: MessageEvent) {
         // this.writeToScreen(`Message Received: ${evt.data}`);
         var m = JSON.parse(evt.data);
-        if (m.type == `ConferenceMessage`) {this.writeMessage(m)}
-        if (m.type == `getConferenceName`) {this.setConferenceName(m.content)}
+        if (m.type == `ConferenceMessage`) {
+            this.writeMessage(m)
+        }
+        if (m.type == `getConferenceName`) {
+            this.setConferenceName(m.content)
+        }
 
     }
 
@@ -102,14 +107,12 @@ class Conference {
         const paragraph = document.createElement(`p`);
         paragraph.style.wordWrap = `break-word`;
         paragraph.appendChild(document.createTextNode(d.getHours() + `:` + d.getMinutes() + `:` +
-            d.getSeconds() + ` id:` + m.messageId +   ` ` + m.creator + `: ` + m.content));
+            d.getSeconds() + ` id:` + m.messageId + ` ` + m.creator + `: ` + m.content));
         // paragraph.addEventListener(`click`, (evt: Event) => {
         //     window.location.href = `/user?id=` + u.id
         // }, true);
-
         this.contentDiv.appendChild(paragraph);
-        // this.contentDiv.insertBefore(paragraph, this.contentDiv.firstChild)
-        while (this.contentDiv.childNodes.length > 25) {
+        while (this.contentDiv.childNodes.length > 250) {
             this.contentDiv.removeChild(this.contentDiv.firstChild);
         }
         this.contentDiv.scrollTop = this.contentDiv.scrollHeight;
@@ -178,15 +181,19 @@ class Conference {
 
     private getConferenceName(requestedConferenceId: string) {
         var command: Message = {
-            type: 'getConferenceName',
-            content: requestedConferenceId,
+            type: `getConferenceName`,
+            content: requestedConferenceId
         };
         this.webSocket.send(JSON.stringify(command))
 
     }
 
     private getMessages(requestedConferenceId: string, messagesCount: number) {
-
+        var command: Message = {
+            type: `getMessages`,
+            content: requestedConferenceId
+        };
+        this.webSocket.send(JSON.stringify(command))
     }
 
     private setConferenceName(content: string) {

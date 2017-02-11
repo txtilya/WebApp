@@ -32,9 +32,7 @@ import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
 import java.sql.Timestamp;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import static listeners.Initer.USER_DAO;
@@ -98,12 +96,26 @@ public class Channel {
         if (m.getType().equals("ConferenceMessage")) conferenceMessage(message);
         if (m.getType().equals("SearchFriends")) searchFriends(m.getContent());
         if (m.getType().equals("getConferences")) getConferences();
+        if (m.getType().equals("getMessages")) getMessages(m.getContent());
 
         String filteredMessage = String.format("%s: %s",
                 connectionOwner.getLogin(), HTMLFilter.filter(message));
         log.info(message);
 //        broadcast(filteredMessage);
 //        sendToThis(filteredMessage);
+    }
+
+    private void getMessages(String conferenceId) {
+        ArrayList<OutputMessage> m = new ArrayList<OutputMessage>
+                (userDao.getConferenceMessagesById(Integer.parseInt(conferenceId)));
+        m.sort(Comparator.comparing(OutputMessage::getMessageId));
+        for (OutputMessage om : m) {
+            String u = toJson(om);
+            sendToThis(u);
+            log.info(u);
+        }
+
+//        getMessageId()
     }
 
     private void getConferences() {
@@ -228,7 +240,6 @@ public class Channel {
         }
     }
 
-    @SneakyThrows
     private void sendToThis(String msg) {
         sendToClient(msg, this);
     }

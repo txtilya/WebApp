@@ -8,6 +8,7 @@ import lombok.val;
 import model.Conference;
 import model.User;
 import model.messages.ConferenceMessage;
+import model.messages.OutputMessage;
 
 import java.sql.*;
 import java.util.*;
@@ -96,6 +97,39 @@ public class MysqlUserDao implements UserDao {
         return ids;
     }
 
+
+    @SneakyThrows
+    @Override
+    public Collection<OutputMessage> getConferenceMessagesById(int conferenceId) {
+        val messages = new HashSet<OutputMessage>();
+        val sql = "SELECT content, conference_id, id, readed, user_id, date FROM `user_message` " +
+                "WHERE conference_id = '" + conferenceId + "' ORDER BY id";
+        try (Connection connection = connectionSupplier.get();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(sql)) {
+            while (resultSet.next())
+                messages.add(new OutputMessage(
+                        "ConferenceMessage",
+                        resultSet.getString("content"),
+                        resultSet.getString("conference_id"),
+                        resultSet.getInt("id"),
+                        resultSet.getInt("readed"),
+                        getById(resultSet.getInt("user_id")).get().getLogin(),
+                        resultSet.getTimestamp("date")
+                ));
+        }
+        return messages;
+    }
+//    String type;
+//    String content;
+//    String conferenceId;
+//    int messageId;
+//    int readied;
+//    String creator;
+//    Timestamp timestamp;
+//
+//    OutputMessage o = new OutputMessage(m.getType(), m.getContent(), m.getConferenceId(),
+//            messageId, 0, connectionOwner.getLogin(), new Timestamp(new Date().getTime()));
 
     @SneakyThrows
     @Override

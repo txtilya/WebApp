@@ -1,9 +1,9 @@
 package dao;
 
-import lombok.SneakyThrows;
 import model.Conference;
 import model.User;
 import model.messages.ConferenceMessage;
+import model.messages.OutputMessage;
 
 import java.sql.Timestamp;
 import java.util.Collection;
@@ -22,13 +22,14 @@ public interface UserDao {
     Optional<User> getByEmail(String email);
 
 
-    @SneakyThrows
+
     Collection<User> getUsersByIdOrLogin(User user, String idOrLogin);
     Collection<User> getFriendsRequests(User user);
     Collection<Conference> getConferences(User u);
 
-    @SneakyThrows
+
     Collection<Integer> getConferenceIdsByUser(User u);
+    Collection<OutputMessage> getConferenceMessagesById(int conferenceId);
 
     Collection<Integer> getUsersIdsFromConference(int conferenceId);
     boolean isUsersFriends(int id, int id1);

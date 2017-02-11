@@ -88,7 +88,7 @@
             </td>
             <td id="col3">
                 <div>
-                    <a id="c3showMoreMessages" href>More messages</a><br>
+                    <a id="c3showMoreMessages" href></a><br>
                     <a id="c3addFriend" href></a><br>
                 </div>
             </td>
